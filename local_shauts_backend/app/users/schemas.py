@@ -18,7 +18,7 @@ class UserSchema(Schema):
             raise ValidationError("The Name field is required")
 
     @validates("confirm_password")
-    def requierd_confirmpassword(self, value):
+    def required_confirmpassword(self, value):
         if not value.strip():
             raise ValidationError("The confirm password field is required")
 
@@ -74,27 +74,33 @@ login_schema = LoginSchema()
 login_schemas = LoginSchema(many=True)
 
 class UserUpdateSchema(Schema):
-    first_name = fields.String(required=True)
-    last_name = fields.String(required=True)
+    name = fields.String(required=True)
+    phone_num = fields.String(required=True)
+    address = fields.String(required=True)
     role_id = fields.Integer(required=True)
     email = fields.String(required=True)
     password = fields.String(required=True)
     confirmPassword = fields.String(required=True)
 
-    @validates("first_name")
+    @validates("name")
+    def required_name(self, value):
+        if not value:
+            raise ValidationError("The name field is required")
+
+    @validates("phone_num")
     def requiredfirst_name(self, value):
         if not value:
-            raise ValidationError("The First Name field is required")
+            raise ValidationError("The phone_num field is required")
         
     @validates("role_id")
     def requiredrole_id(self, value):
         if not value:
             raise ValidationError("The role id field is required")
         
-    @validates("last_name")
+    @validates("address")
     def requiredlast_name(self, value):
         if not value:
-            raise ValidationError("The Last Name field is required")
+            raise ValidationError("The address field is required")
         
     @validates("confirmPassword")
     def requierd_confirmpassword(self, value):
@@ -117,11 +123,11 @@ class UserUpdateSchema(Schema):
     def validates_email(self, value):
         if not value:
             raise ValidationError("The Email or Username field is required")
-        if request.method != 'PUT' and value:
-            existing_user = User.query.filter_by(email=value).first()
-            existing_email = Company.query.filter_by(email=value).first()
-            if existing_user or existing_email:
-                raise ValidationError("Email or Username already exists")
+        # if request.method != 'PUT' and value:
+        #     existing_user = User.query.filter_by(email=value).first()
+        #     existing_email = Company.query.filter_by(email=value).first()
+        #     if existing_user or existing_email:
+        #         raise ValidationError("Email or Username already exists")
         
     @post_load
     def make_user(self, data, **kwargs):

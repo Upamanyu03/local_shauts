@@ -64,10 +64,6 @@ def delete_s3_objects(prefix):
 
 
 
-
-
-
-
 def token_required(*roles):
     def decorator(f):
         @wraps(f)
@@ -83,16 +79,16 @@ def token_required(*roles):
                     raise Exception("User not found")
                 if roles and current_user.role_id not in roles:
                     return make_response(jsonify({"message": "Unauthorized access!"}), 403)
-                # if current_user.role_id != 1:
-                #     company = current_user.companies
-                #     if company:
-                #         date_info = json.loads(company.date)
-                #         sub_end_str = date_info.get('sub_end', "")
-                #         if sub_end_str:
-                #             sub_end = datetime.strptime(sub_end_str, '%Y-%m-%d').date()
-                #             today = datetime.today().date()
-                #             if sub_end < today:
-                #                 return make_response(jsonify({"subscription": "Expired"}), 403)
+                if current_user.role_id != 1:
+                    affilate = current_user.affilate
+                    if affilate:
+                        date_info = json.loads(affilate.date)
+                        sub_end_str = date_info.get('sub_end', "")
+                        if sub_end_str:
+                            sub_end = datetime.strptime(sub_end_str, '%Y-%m-%d').date()
+                            today = datetime.today().date()
+                            if sub_end < today:
+                                return make_response(jsonify({"subscription": "Expired"}), 403)
                 return f(current_user, *args, **kwargs)
             except jwt.ExpiredSignatureError:
                 return make_response(jsonify({"message": "Expired token!"}), 401)
@@ -114,7 +110,7 @@ def s3_file_exists(path_to_save, filename):
 
 def query_items(query, user_details, search, direction, timestamp, role_filter_field, search_fields):
     if user_details.role_id != 1:
-        query = query.filter_by(company_id=user_details.company_id)
+        query = query.filter_by(affilate_id=user_details.affilate_id)
     if search:
         search_filters = or_(*[field.ilike(f'%{search}%') for field in search_fields])
         query = query.filter(search_filters)
@@ -136,19 +132,20 @@ def query_items(query, user_details, search, direction, timestamp, role_filter_f
 
 
 def single_query(model, user_details, id):
-    return model.query.filter(
+    print(model.query.filter(
         and_(
             model.id == id,
             or_(
-                user_details.company_id == model.company_id,
+                user_details.affilate_id == model.affilate_id,
                 user_details.role_id == 1
             )
         )
-    ).first()
+    ))
+   
 
 def delete_item(model, user_details, id, message):
     try:
-        item = single_query(model, user_details, id)
+        item = model.query.filter_by(id=id).first()
         if item:
             db.session.delete(item)
             db.session.commit()
@@ -156,3 +153,42 @@ def delete_item(model, user_details, id, message):
         return make_response(jsonify({'message': f'{message} not found', 'status': 'error'}), 404)
     except Exception as e:
         return make_response(jsonify({'message': f'Error deleting {message}: {e}', 'status': 'error'}), 500)
+    
+def serialized_user(user):
+    return {
+        'id': user.id,
+        'role_id': user.role_id,
+        'affilate_id': user.affilate_id,
+        'name': user.name,
+        'email': user.email,
+        'profile_pic': user.profile_pic,
+        'details': user.details,
+        'created_at': user.created_at.strftime('%d-%m-%Y %I:%M%p'),
+        'updated_at': user.updated_at.strftime('%d-%m-%Y %I:%M%p'),
+        'timestamp': int(user.updated_at.replace(tzinfo=timezone.utc).timestamp()),
+    } 
+    
+            
+
+
+
+    
+def handle_action(data, action_type='operation'):
+    message_type = {
+        'create' : 'user created successfully',
+        'update' : 'user updated successfully'
+    }
+    try:
+        if action_type == 'create':
+            db.session.add(data)
+
+        db.session.commit()
+        message = message_type.get(action_type,'operation successfull')
+        return make_response(jsonify({'message' :message, 'status' :'success'}), 200)
+    except Exception as e:
+        return make_response(jsonify({'message' : str(e), 'status':'error'}), 500)
+
+        
+
+
+   

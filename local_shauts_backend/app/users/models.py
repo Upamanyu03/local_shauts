@@ -16,7 +16,7 @@ class User(Base):
     __tablename__ = "users"
     id  = Column(Integer, primary_key=True)
     role_id = Column(Integer, ForeignKey('roles.id'))
-    affilate_id = Column(Integer, ForeignKey('affilate.affilate_id'))
+    affilate_id = Column(Integer, ForeignKey('affilate.id'))
     name = Column(String, nullable=False)
     email = Column(String, nullable=False, unique=True)
     password = Column(String, nullable=False)

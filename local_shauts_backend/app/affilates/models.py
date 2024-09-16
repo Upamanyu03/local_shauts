@@ -15,7 +15,7 @@ Base: declarative_base = db.Model
 
 class Affilate(Base):
     __tablename__ = 'affilate'
-    affilate_id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     affilate_name = Column(String, nullable=True)
     email = Column(String, nullable=False, unique=True)
     mobile_number = Column(String, nullable=False)
