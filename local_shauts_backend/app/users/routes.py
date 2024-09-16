@@ -4,11 +4,12 @@ import json
 from app.roles.models import Roles
 from app.users.schemas import user_schema, login_schema, user_update_schema, password_schema
 from app.users.utills import generate_token, asia_kokata_time
+from app.users.utills import serialized_user
 from app import db
 from bcrypt import checkpw
 # from app.utils.helpers import token_required, delete_item
 from sqlalchemy import desc, or_, and_
-from app.utils.helpers import query_items, single_query, token_required, delete_item, handle_action, serialized_user
+from app.utils.helpers import query_items, single_query, token_required, delete_item, handle_action
 import bcrypt
 from datetime import datetime, timezone
 
@@ -45,7 +46,7 @@ def add_user():
         return make_response(jsonify({'args':e.args,"status":"error","message":'error Staff user'}), 500)
 
 
-@users.route('/add_or_update', methods=['POST', 'PUT'])
+@users.route('/add-or-update', methods=['POST', 'PUT'])
 def add_or_update_user(user_details):
     try:
         user = User.query.filter(and_(User.id == id), or_(user_details.affilate_id == User.affilate_id, user_details.role_id == 1)).first()
@@ -123,7 +124,7 @@ def get_users_timestamp(user_details):
     except Exception as e:
         return make_response(jsonify({'message': f'Error: {e}', 'status': 'error'}), 500)
     
-@users.route("/get_user/<int:id>", methods=["GET"])
+@users.route("/get-user/<int:id>", methods=["GET"])
 @token_required(1, 2, 3, 4)
 def get_user(user_details,id):
     try:

@@ -153,23 +153,6 @@ def delete_item(model, user_details, id, message):
         return make_response(jsonify({'message': f'{message} not found', 'status': 'error'}), 404)
     except Exception as e:
         return make_response(jsonify({'message': f'Error deleting {message}: {e}', 'status': 'error'}), 500)
-    
-def serialized_user(user):
-    return {
-        'id': user.id,
-        'role_id': user.role_id,
-        'affilate_id': user.affilate_id,
-        'name': user.name,
-        'email': user.email,
-        'profile_pic': user.profile_pic,
-        'details': user.details,
-        'created_at': user.created_at.strftime('%d-%m-%Y %I:%M%p'),
-        'updated_at': user.updated_at.strftime('%d-%m-%Y %I:%M%p'),
-        'timestamp': int(user.updated_at.replace(tzinfo=timezone.utc).timestamp()),
-    } 
-    
-            
-
 
 
     

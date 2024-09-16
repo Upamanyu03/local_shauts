@@ -126,7 +126,7 @@ def update_affilate(user_details, id):
     except Exception as e:
         return make_response(jsonify({'args': e.args, "status": "error", "message": 'Error updating affilate'}), 500)
     
-@affilates.route('/delete_affilate/<int:id>', methods=['DELETE'])
+@affilates.route('/delete-affilate/<int:id>', methods=['DELETE'])
 @token_required(1)
 def delete_affiliate(user_details, id):
   return delete_item(Affilate, user_details, id, "Affilate")

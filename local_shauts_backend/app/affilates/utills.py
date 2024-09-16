@@ -1,6 +1,6 @@
 from app.affilates.models import Affilate
 from app.affilates.schemas import affilate_schema
-from datetime import  timezone
+from datetime import timezone
 
 def serialized_affilate(affilate, date):
     # date = {
