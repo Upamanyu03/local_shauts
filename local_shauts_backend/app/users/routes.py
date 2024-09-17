@@ -210,6 +210,7 @@ def dashboard(user_details):
         if user_details.role_id == 1:
             query = {
                 "user_count": User.query.filter(User.role_id != 2).count() - 1,
+                # "email" : User.email,
             }
         else:
             affilate_id = user_details.affilate_id
