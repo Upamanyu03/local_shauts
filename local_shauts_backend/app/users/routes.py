@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 users = Blueprint('users', __name__)
 
 @users.route('/add-user', methods=['POST'])
-# @token_required(1, 2, 3)
+@token_required(1, 2, 3)
 def add_user():
     try:
         data= request.get_json()
@@ -237,7 +237,7 @@ def profile_information(current_user):
                     date = json.loads(affilate.date)
                 except json.JSONDecodeError:
                     return make_response(jsonify({'message': 'Invalid date JSON', 'status': 'error'}), 400)
-            sub_end = date.get('sub_end', "")
+
             serialized_user = {
                 'id': user.id,
                 'role_id': user.role_id,
@@ -248,7 +248,7 @@ def profile_information(current_user):
                 'details': user.details,
                 'flag': user.flag,
                 'sub_start': date.get('sub_start', ""),
-                'sub_end': sub_end,
+                'sub_end': date.get('sub_end', ""),
                 'created_at_date': user.created_at.strftime('%d-%m-%Y'),
                 'created_at_time': user.created_at.strftime('%I:%M%p'),
                 'updated_at': user.updated_at

@@ -110,7 +110,7 @@ def s3_file_exists(path_to_save, filename):
 
 def query_items(query, user_details, search, direction, timestamp, role_filter_field, search_fields):
     if user_details.role_id != 1:
-        query = query.filter_by(affilate_id=user_details.affilate_id)
+        query = query.filter_by(id=user_details.affilate_id)
     if search:
         search_filters = or_(*[field.ilike(f'%{search}%') for field in search_fields])
         query = query.filter(search_filters)

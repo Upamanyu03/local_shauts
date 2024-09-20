@@ -3,10 +3,7 @@ from app.affilates.schemas import affilate_schema
 from datetime import timezone
 
 def serialized_affilate(affilate, date):
-    # date = {
-    #         'sub_start': date.get('sub_start', ""),
-    #         'sub_end': date.get('sub_end', ""),
-    #     }
+    print("Date dictionary content:", date)
     return {
         'id': affilate.id,
         'affilate_name': affilate.affilate_name,

@@ -30,10 +30,12 @@ def boot_app(config_class=Config):
 
     from app.users.routes import users
     from app.affilates.routes import affilates
+    from app.customers.routes import customers
     
 
     app.register_blueprint(users)
     app.register_blueprint(affilates)
+    app.register_blueprint(customers)
     
 
     return app
