@@ -56,7 +56,8 @@ def add_affilate(user_details):
 
     
 @affilates.route("/affilates-list", methods = ['GET'])
-def get_affilates():
+@token_required(1, 2)
+def get_affilates(user_details):
     try:        
         search = request.args.get('search')
         if search:
@@ -84,7 +85,8 @@ def get_affilates():
 
     
 @affilates.route('/view-affilate/<int:id>', methods = ['GET'])
-def view_affilate(id):
+@token_required(1, 2)
+def view_affilate(user_details, id):
     try:
         affilate = Affilate.query.get(id)
         if affilate:
@@ -105,7 +107,7 @@ def view_affilate(id):
 
 
 @affilates.route("/update-affilate/<int:id>", methods=["PUT"])
-@token_required(1, 2)
+@token_required(1,)
 def update_affilate(user_details, id):
     try:
         affilate = Affilate.query.filter_by(id=id).first()

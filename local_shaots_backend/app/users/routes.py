@@ -2,16 +2,25 @@ from flask import Blueprint, request, json, jsonify, make_response,session
 from app.users.models import User
 import json
 from app.roles.models import Roles
-from app.users.schemas import user_schema, login_schema, user_update_schema, password_schema
+from app.users.schemas import user_schema, login_schema, user_update_schema, password_schema, otp_schema
 from app.users.utills import generate_token, asia_kokata_time
 from app.users.utills import serialized_user
 from app import db
 from bcrypt import checkpw
+import random
+import smtplib, ssl
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+from datetime import datetime, timedelta
 # from app.utils.helpers import token_required, delete_item
 from sqlalchemy import desc, or_, and_
 from app.utils.helpers import query_items, single_query, token_required, delete_item, handle_action
 import bcrypt
 from datetime import datetime, timezone
+
+
+
 
 
 users = Blueprint('users', __name__)
@@ -170,10 +179,7 @@ def update_user(user_details, id):
 @users.route('/delete-user/<int:id>', methods=['DELETE'])
 @token_required(1, 2, 3)
 def delete_user(user_details, id):
-    try:
-        return delete_item(User, user_details, id, "User")
-    except Exception as e:
-        return make_response(jsonify({'message': f'error deleting user: {e}',"status": "error"}), 500)
+    return delete_item(User, user_details, id, "User")
 
 @users.route('/login', methods=['POST'])
 def Login():
@@ -226,18 +232,14 @@ def dashboard(user_details):
 def profile_information(current_user):
     try:
         user = User.query.filter_by(id=current_user.id).first()
-        print(user.affilate)
         if user:
             affilate = user.affilate
-            print(affilate)
             date = {}
             if affilate and affilate.date:
                 try:
-                    print(f"Raw date: {affilate.date}")
                     date = json.loads(affilate.date)
                 except json.JSONDecodeError:
                     return make_response(jsonify({'message': 'Invalid date JSON', 'status': 'error'}), 400)
-
             serialized_user = {
                 'id': user.id,
                 'role_id': user.role_id,
@@ -272,11 +274,11 @@ def logout():
         print(f"An error occurred during logout: {str(e)}")
         return make_response(jsonify({"message": "An error occurred while logging out"}), 500 )
 
-@users.route("/update-password/<int:id>", methods=["PUT"])
-@token_required(1, 2)
-def update_password(user_details, id):
+@users.route("/update-password/<string:email>", methods=["PUT"])
+# @token_required(1, 2)
+def update_password(email):
     try:
-        user = User.query.filter_by(id=id).first()
+        user = User.query.filter_by(email=email).first()
         if user:
             data = request.get_json()
             # data_dict = json.loads(data['formData'])
@@ -285,12 +287,76 @@ def update_password(user_details, id):
             schemaArray['confirmPassword'] = data['confirmPassword']
             loaded_data = password_schema.load(schemaArray)
             password =bcrypt.hashpw(loaded_data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            db.session.query(User).filter(User.id == id).update({
-                User.password: password,
-                User.flag: "0"
-            })
+            user.password = password
+            user.flag = 0
             db.session.commit()
             return make_response(jsonify({'message': 'Profile password updated successfully', "status": "Success"}), 200)
         return make_response(jsonify({'message': 'Staff not found', "status": "error"}), 404)
     except Exception as e:
         return make_response(jsonify({'args': e.args, "status": "error", "message": 'error Staff user'}), 500)
+
+
+@users.route('/forgot-password/request-otp', methods=['POST'])
+def request_reset_otp():
+    try:
+
+        data = request.get_json()
+        email = data.get('email')
+
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return jsonify({'error': 'User with this email does not exist'}), 404
+
+
+        otp = random.randint(100000, 999999)
+
+
+        smtp_server = os.environ['MAIL_HOST']
+        port = 465
+        sender_email = os.environ['MAIL_USERNAME']
+        receiver_email = email
+        password = os.environ['MAIL_PASSWORD']
+
+
+        message = MIMEMultipart()
+        message['From'] = sender_email
+        message['To'] = receiver_email
+        message['Subject'] = 'Your Local Shouts OTP'
+        message['MAIL_FROM'] = 'Localshouts'
+
+        body = f'''[#] {otp} is the OTP to log in to your Local Shouts account.
+                DO NOT share this code with anyone, including Local Shouts agents.'''
+
+        message.attach(MIMEText(body, 'plain'))
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+            server.login(sender_email, password)
+            server.sendmail(sender_email, receiver_email, message.as_string())
+
+        user.otp = otp
+        db.session.commit()
+
+        return make_response(jsonify({
+            'message': f'[#] {otp} is the OTP to log in to your Local Shouts account. '
+                       'DO NOT share this code with anyone, including Local Shouts agents.',
+            'status': 'Success'
+        }), 200)
+
+    except Exception as e:
+        return make_response(jsonify({'message': f'Error: {e}', 'status': 'error'}), 500)
+
+@users.route('/check-otp', methods=['POST'])
+def check_otp():
+    data = request.get_json()
+    schema_array = {
+        'otp': data['otp']
+    }
+    otp_schema.load(schema_array)
+    return make_response(jsonify({'message':"OTP verified", 'status':"Success"}))
+
+
+

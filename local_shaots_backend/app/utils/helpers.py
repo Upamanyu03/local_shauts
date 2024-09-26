@@ -141,7 +141,11 @@ def single_query(model, user_details, id):
             )
         )
     ))
-   
+
+def single_record_get(model, id):
+    print(model, id)
+    print(model.query.filter(model.id == id).first())
+    return None
 
 def delete_item(model, user_details, id, message):
     try:

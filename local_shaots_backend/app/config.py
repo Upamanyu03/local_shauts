@@ -2,6 +2,7 @@ import os
 from sqlalchemy.engine.url import URL
 from decouple import config
 from dotenv import load_dotenv, dotenv_values
+from os import getenv
 
 load_dotenv()
 env = dotenv_values(os.getcwd()+"/.env")
@@ -9,6 +10,19 @@ env = dotenv_values(os.getcwd()+"/.env")
 ENVIRONMENT = os.environ["ENVIRONMENT"]
 
 class Config:
+    # SECRET_KEY = 'your-secret-key'
+    # SQLALCHEMY_DATABASE_URI = 'sqlite:///site.db'
+    
+    # Flask-Mail Config
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = getenv('MAIL_PASSWORD')
+    MAIL_DEFAULT_SENDER = 'info@localshouts.com'
+
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     ENVIRONMENT = ENVIRONMENT
