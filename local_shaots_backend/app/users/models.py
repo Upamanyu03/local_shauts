@@ -23,6 +23,7 @@ class User(Base):
     profile_pic = Column(String, nullable=False)
     details = Column(String, nullable=False)
     flag = Column(String, nullable=False)
+    otp = Column(Integer, nullable=False)
     created_at = Column(DateTime(timezone=True), default=func.now())
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
 

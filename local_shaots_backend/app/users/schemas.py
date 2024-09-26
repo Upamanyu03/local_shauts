@@ -1,9 +1,8 @@
 from marshmallow import Schema, fields, post_load, validates, ValidationError,validates_schema
 from werkzeug.security import check_password_hash
-import re
 from app.users.models import User
-# from app.companies.models import Company
-from flask import request
+from datetime import datetime, timezone, timedelta
+
 class UserSchema(Schema):
     affilate_id=fields.Integer(required=False)
     name = fields.String(required=True)
@@ -164,3 +163,22 @@ class PasswordSchema(Schema):
     
 password_schema = PasswordSchema()
 password_schemas = PasswordSchema(many=True)
+
+class OTPSchema(Schema):
+    otp = fields.Integer(required=True)
+
+    @validates("otp")
+    def otp_check(self, value):
+        user = User.query.filter_by(otp=value).first()
+        if not user:
+            raise ValidationError("Invalid OTP")
+        added_time = user.updated_at + timedelta(minutes=2.10)
+        current_time = datetime.now()
+        if added_time < current_time:
+            raise ValidationError("The OTP has expired")
+
+    @post_load
+    def make_otp(self, data, **kwargs):
+        return data
+
+otp_schema = OTPSchema()
